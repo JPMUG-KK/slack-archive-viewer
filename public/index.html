@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Comfortaa:300,700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Kalam">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link href="https://fonts.googleapis.com/css?family=Saira+Semi+Condensed:300,400,500,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/earlyaccess/nicomoji.css" rel="stylesheet">
+<style>
+      html, body{
+        padding : 0;
+        margin : 0;
+        background-color: #fff;
+        min-height : 100vh;
+        min-height : 100svh;
+      }
+      @-webkit-keyframes mono-anim {
+          0%{transform: rotate(0deg)}
+          50%{transform: rotate(-45deg)}
+          100%{transform: rotate(0deg)}
+      }
+      @-moz-keyframes mono-anim {
+          0%{transform: rotate(0deg)}
+          50%{transform: rotate(-45deg)}
+          100%{transform: rotate(0deg)}
+      }
+      @keyframes mono-anim { 
+          0%{transform: rotate(0deg)}
+          50%{transform: rotate(-45deg)}
+          100%{transform: rotate(0deg)}
+      }
+      @font-face {
+        font-family: 'Hieroglify';
+        src: url(Hieroglify-w11n.ttf);
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height : 8px;
+      }
+      /*スクロールバーのレール*/
+      ::-webkit-scrollbar-track {
+        border-radius: 30px;
+        background: transparent;
+      }
+      ::-webkit-scrollbar-corner{
+        background: transparent;
+      }
+      /*スクロールバーのつまみ*/
+      ::-webkit-scrollbar-thumb {
+        border-radius: 30px;
+        background: rgba(0,0,0,0.5);
+      }
+      /* Reset input[type="search"] */
+      input[type="search"] {
+        -webkit-appearance: none;
+        -webkit-box-sizing: content-box;
+        appearance : none;
+      }
+      input[type="search"]:focus {
+        outline-offset: -2px;
+      }
+      input[type="search"]::-webkit-search-decoration,
+      input[type="search"]::-webkit-search-cancel-button {
+        display: none;
+      }
+    </style>
+    <title>Slack viewer</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
+</html>
