@@ -65,8 +65,17 @@ const useStyles = makeStyles(theme => ({
         '& code' : {
             backgroundColor : '#eee',
             border : 'solid 1px #ddd',
-            padding : '0 2px',
+            padding : '2px 4px',
             color : '#e01e5a',
+            borderRadius : 2,
+        },
+        '& pre' : {
+            '& code' : {
+                display : 'block',
+                padding : '4px 8px',
+                borderRadius : 4,
+                color : 'rgba(0,0,0,0.85)',
+            },
         }
     },
     attachments : {
@@ -144,7 +153,8 @@ export default function LogDetail(props) {
                     <Typography className={classes.logDate}>{date}</Typography>
                 </div>
                 <div className={classes.logText}>
-                <ReactMarkdown children={message} /></div>
+                    <ReactMarkdown children={message} />
+                </div>
                 <div className={classes.logToolBox}>
                 <div className={classes.attachments}>
                 {

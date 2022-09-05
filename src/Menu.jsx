@@ -45,6 +45,7 @@ const useStyles = makeStyles(theme => ({
         alignItems : 'center',
         borderBottom : 'solid 1px rgba(255,255,255,0.15)',
         gap : 8,
+        minHeight : 35,
     },
     ListItemRoot : {
         color : 'rgba(255, 255, 255, 0.75)',
@@ -70,6 +71,7 @@ const useStyles = makeStyles(theme => ({
     },
     importDbButton : {
         backgroundColor : 'rgba(255, 255, 255, 0.75)',
+        padding : 8,
         '&:hover' : {
             backgroundColor : 'rgba(255, 255, 255, 1)',
         }
