@@ -110,7 +110,7 @@ export default function App(props) {
                 menuId={menuId}
             />
             {
-                logId && (
+                appType === 'log' && logId && (
                     <div 
                         id={threadResizeBarId}
                         className={classes.menuResizeBar} 

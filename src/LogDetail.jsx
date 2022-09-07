@@ -55,6 +55,9 @@ const useStyles = makeStyles(theme => ({
         padding : '4px 0',
         wordBreak : 'break-all',
         whiteSpace : 'pre-line',
+        '& *' :{
+            fontSize : 14,
+        },
         '& p' :{
             margin : 0,
         },
@@ -75,8 +78,9 @@ const useStyles = makeStyles(theme => ({
                 padding : '4px 8px',
                 borderRadius : 4,
                 color : 'rgba(0,0,0,0.85)',
+                overflowX : 'auto',
             },
-        }
+        },
     },
     attachments : {
         display : 'flex',
@@ -99,6 +103,14 @@ const useStyles = makeStyles(theme => ({
     logToolBox : {
         position : 'relative',
         //zIndex : 2,
+    },
+    mentionLink : {
+        textDecoration : 'none',
+        fontStyle : 'normal',
+        backgroundColor : '#f2c74466',
+        fontWeight : 600,
+        padding : '1px 2px',
+        borderRadius : 2,
     }
 }));
 
@@ -127,6 +139,7 @@ export default function LogDetail(props) {
             user : id,
             ts,
             text,
+            customText,
             files=[],
             reply_count=0,
             reply_users=[],
@@ -138,22 +151,74 @@ export default function LogDetail(props) {
         const {
             name,
             real_name,
-        } = user;
-        let message = text;
+        } = user || {
+            // 'USLACKBOT' = slack bot
+            name : 'Slackbot',
+        };
+        const userName = real_name || name;
+        let message = text || customText;
+        
+        const mentionRegExp = new RegExp(/^<!|>$/gi);
+        const mentionText  = ['@here', '@channel'];
+        const msgRegExp = [{
+            key   : '<!here>',
+            replacer : (value) => `*@${value.replace(mentionRegExp, '')}*`,
+        }, {
+            key : '<!channel>',
+            replacer : (value) => `*@${value.replace(mentionRegExp, '')}*`,
+        }, {
+            key : '<!subteam.+?\\|@.+?>',
+            replacer : (value) => {
+                const channelName = (value.split('|')?.[1] || 'undefined').replace(/>$/, '');
+                if(!mentionText.includes(channelName)){
+                    mentionText.push(channelName);
+                }
+                return `**${channelName}**`;
+            } ,
+        }];
+        msgRegExp.forEach(params => {
+            const {
+                key,
+                replacer,
+            } = params;
+            const regExp = new RegExp(key, 'gi');
+            message = message.replace(regExp, replacer);
+        });
+        
         users.forEach(u => {
             const userRegExp = new RegExp(`<@${u.id}>`, 'gi');
-            message = emojiSupport(message.replace(userRegExp, u.real_name));
+            const name = u.real_name || u.name;
+            if(!mentionText.includes(`@${name}`)){
+                mentionText.push(`@${name}`);
+            }
+            message = emojiSupport(message.replace(userRegExp, `**@${name}**`));
         });
-        const hasReactions = Boolean(reactions.length);
         
+        const hasReactions = Boolean(reactions.length);
+        const isMention = (props) => {
+            return Boolean(props.children.filter(child => mentionText.includes(child)).length)
+        }
         return (
             <div className={classes.logBox}>
                 <div className={classes.logHead}>
-                    <Typography className={classes.logUser}>{real_name}</Typography>
+                    <Typography className={classes.logUser}>{userName}</Typography>
                     <Typography className={classes.logDate}>{date}</Typography>
                 </div>
                 <div className={classes.logText}>
-                    <ReactMarkdown children={message} />
+                    <ReactMarkdown 
+                        children={message} 
+                        components={{
+                            'strong' : ({node, ...props}) => {
+                                const isLinkText = isMention(props);
+                                const className = isLinkText ? classes.mentionLink : null;
+                                return <strong className={className} {...props} />
+                            },
+                            'em' : ({node, ...props}) => {
+                                const isLinkText = isMention(props);
+                                return isLinkText ? <strong className={classes.mentionLink} {...props} /> : <strong {...props} />
+                            }
+                        }}
+                    />
                 </div>
                 <div className={classes.logToolBox}>
                 <div className={classes.attachments}>
@@ -192,7 +257,7 @@ export default function LogDetail(props) {
     const LogDetailComponent = React.useCallback((props)=>{
         return (
             <>
-                <UserAvatar users={users} id={user.id} />
+                <UserAvatar users={users} id={user?.id || null} />
                 <ListItemText primary={<Log log={log} />} />
             </>
         )

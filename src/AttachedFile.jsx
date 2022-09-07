@@ -51,6 +51,7 @@ export default function UserAvatar(props) {
             return (
                 <a 
                     key={id} 
+                    id={id} 
                     className={classes.fileBox} 
                     style={{padding : 0}} 
                     href={data} 
@@ -65,6 +66,7 @@ export default function UserAvatar(props) {
         return (
             <a 
                 key={id} 
+                id={id} 
                 className={classes.fileBox} 
                 href={data} 
                 download={isBase64 ? name : null} 

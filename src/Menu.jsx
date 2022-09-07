@@ -114,7 +114,11 @@ export default function Menu(props) {
     const history = useHistory();
 
     const changeChannel = (app, id) => () => {
-        history.push(`/${workSpace}/${app}/${id}`);
+        let url = `/${workSpace}/${app}/${id}`;
+        if(app === 'search'){
+            url = `/${workSpace}/${app}/messages/${id}`
+        }
+        history.push(url);
     }
 
     const channels = slackData.setting.channels.map(c => {

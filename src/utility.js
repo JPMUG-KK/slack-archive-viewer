@@ -51,7 +51,7 @@ const unzipSlackExportFiles = (event, callback) => {
                 }
             }
         });
-        console.log({slackData});
+        //console.log({slackData});
         callback({
             [slackName] : slackData,
         }, slackName);

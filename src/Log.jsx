@@ -31,6 +31,8 @@ const useStyles = makeStyles(theme => ({
     },
     List : {
         alignItems : 'flex-start',
+        contentVisibility: 'auto',
+        containIntrinsicSize: 80,
     },
     logBox : {
         display : 'flex',
@@ -175,6 +177,7 @@ export default function Log(props) {
 
                                 const logs = logData[date]
                                     .filter(log => log.subtype || !threadIds.includes(`${log.user}:${log.ts}`))
+                                    //.filter(log => !threadIds.includes(`${log.user}:${log.ts}`))
                                     .filter(log => log.text)
                                     .sort((a, b) => a.ts - b.ts);
                                 const hasLog = Boolean(logs.length);
@@ -190,7 +193,8 @@ export default function Log(props) {
                                                     } = log;
                                                     const user = users.find(user => user.id === userId);
                                                     return (
-                                                        user && (<ListItem id={client_msg_id} key={client_msg_id} className={classes.List}>
+                                                        //user && (<ListItem id={client_msg_id} key={client_msg_id} className={classes.List}>
+                                                        (<ListItem id={client_msg_id} key={client_msg_id} className={classes.List}>
                                                             <LogDetail 
                                                                 users={users}
                                                                 user={user}

@@ -5,6 +5,7 @@ import Avatar from '@material-ui/core/Avatar';
 import {
     getBase64Data,
 } from './utility.js';
+import slackBotSrc from './img/bot.png';
 const useStyles = makeStyles(theme => ({
 
 }));
@@ -18,13 +19,12 @@ export default function UserAvatar(props) {
         size=48,
     } = props;
     const imageSize  = size === 24 ? 24 : null;
-
     React.useEffect(()=>{
         (async ()=>{
             const {
-                profile,
-            } = users.find(u => u.id === id);
-            const base64Data = await getBase64Data(`${id}-image_${size}`);
+                profile=null,
+            } = users.find(u => u.id === id) || {};
+            const base64Data = id === null ? { data : slackBotSrc } : await getBase64Data(`${id}-image_${size}`);
             const _image     = base64Data?.data || profile[`image_${size}`];
             setImage(_image);
         })()

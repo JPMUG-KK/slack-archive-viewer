@@ -67,7 +67,10 @@ export default function Reactions(props) {
                     const emojiData = emojiSupport(emojiText);
                     const emojiIcon = emojiData === 'undefined' ? undefinedIcon : emojiData;
                     const usersText = reactionUsers
-                        .map(id => users.find(u => u.id === id).real_name)
+                        .map(id => {
+                            const user = users.find(u => u.id === id);
+                            return user?.real_name || user?.name || null;
+                        })
                         .join(', ');
 
                     return (
