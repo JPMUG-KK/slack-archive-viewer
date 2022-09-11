@@ -31,8 +31,8 @@ const useStyles = makeStyles(theme => ({
     },
     List : {
         alignItems : 'flex-start',
-        contentVisibility: 'auto',
-        containIntrinsicSize: 80,
+        //contentVisibility: 'auto',
+        //containIntrinsicSize: 80,
     },
     logBox : {
         display : 'flex',

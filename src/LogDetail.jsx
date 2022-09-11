@@ -10,8 +10,10 @@ import UserAvatar from './UserAvatar.jsx';
 import AttachedFile from './AttachedFile.jsx';
 import Reactions from './Reactions.jsx';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
     emojiSupport,
+    unicodeEmojiSupport,
 } from './utility.js';
 import moment from 'moment';
 
@@ -71,6 +73,7 @@ const useStyles = makeStyles(theme => ({
             padding : '2px 4px',
             color : '#e01e5a',
             borderRadius : 2,
+            fontSize : 12,
         },
         '& pre' : {
             '& code' : {
@@ -81,6 +84,11 @@ const useStyles = makeStyles(theme => ({
                 overflowX : 'auto',
             },
         },
+        '& ul,& ol' : {
+            whiteSpace : 'normal',
+            margin : 0,
+            padding : '0 0 0 16px',
+        }
     },
     attachments : {
         display : 'flex',
@@ -131,6 +139,84 @@ export default function LogDetail(props) {
         logId=null,
     } = useParams();
     const classes = useStyles();
+    const replaceMessage = (text) => {
+        const mentionRegExp = new RegExp(/^<!|>$/gi);
+        const mentionText  = ['@here', '@channel'];
+        const msgRegExp = [{
+            // bold
+            key   : '\\*(.+)?\\*',
+            replacer : (value, text) => {
+                return `**${text}**`;
+            },
+        },{
+            // itaric
+            key   : '\\_(.+)?\\_',
+            replacer : (value, text) => {
+                return `*${text}*`;
+            },
+        },{
+            // strikethrough
+            key   : '\\~(.+)?\\~',
+            replacer : (value, text) => {
+                return `~~${text}~~`;
+            },
+        },{
+            // link
+            key   : '\\<(.*)?\\|(.*)?\\>',
+            replacer : (value, href, text) => {
+                return `[${text}](${href})`;
+            },
+        },{
+            // list
+            key   : '•\\s(.*)?\\n',
+            replacer : (value, text) => {
+                return `* ${text}\n`;
+            },
+        },{
+            // code block
+            key   : '`{3}',
+            replacer : '\n```',
+        },{
+            // blockquote
+            key   : '\\&gt;\s',
+            replacer : '> ',
+        },{
+            key   : '<!here>',
+            replacer : (value) => `**@${value.replace(mentionRegExp, '')}**`,
+        }, {
+            key : '<!channel>',
+            replacer : (value) => `**@${value.replace(mentionRegExp, '')}**`,
+        }, {
+            key : '<!subteam.+?\\|@.+?>',
+            replacer : (value) => {
+                const channelName = (value.split('|')?.[1] || 'undefined').replace(/>$/, '');
+                if(!mentionText.includes(channelName)){
+                    mentionText.push(channelName);
+                }
+                return `**${channelName}**`;
+            } ,
+        }];
+        
+        msgRegExp.forEach(params => {
+            const {
+                key,
+                replacer,
+            } = params;
+            const regExp = new RegExp(key, 'gi');
+            text = (text || '').replace(regExp, replacer);
+        });
+        
+        users.forEach(u => {
+            const userRegExp = new RegExp(`<@${u.id}>`, 'gi');
+            const name = u.real_name || u.name;
+            if(!mentionText.includes(`@${name}`)){
+                mentionText.push(`@${name}`);
+            }
+            text = (text || '').replace(userRegExp, `**@${name}**`);
+        });
+        text = emojiSupport(text);
+        return text;
+    }
     const Log = (props) => {
         const {
             log,
@@ -156,44 +242,8 @@ export default function LogDetail(props) {
             name : 'Slackbot',
         };
         const userName = real_name || name;
-        let message = text || customText;
-        
-        const mentionRegExp = new RegExp(/^<!|>$/gi);
-        const mentionText  = ['@here', '@channel'];
-        const msgRegExp = [{
-            key   : '<!here>',
-            replacer : (value) => `*@${value.replace(mentionRegExp, '')}*`,
-        }, {
-            key : '<!channel>',
-            replacer : (value) => `*@${value.replace(mentionRegExp, '')}*`,
-        }, {
-            key : '<!subteam.+?\\|@.+?>',
-            replacer : (value) => {
-                const channelName = (value.split('|')?.[1] || 'undefined').replace(/>$/, '');
-                if(!mentionText.includes(channelName)){
-                    mentionText.push(channelName);
-                }
-                return `**${channelName}**`;
-            } ,
-        }];
-        msgRegExp.forEach(params => {
-            const {
-                key,
-                replacer,
-            } = params;
-            const regExp = new RegExp(key, 'gi');
-            message = message.replace(regExp, replacer);
-        });
-        
-        users.forEach(u => {
-            const userRegExp = new RegExp(`<@${u.id}>`, 'gi');
-            const name = u.real_name || u.name;
-            if(!mentionText.includes(`@${name}`)){
-                mentionText.push(`@${name}`);
-            }
-            message = emojiSupport(message.replace(userRegExp, `**@${name}**`));
-        });
-        
+        let message = replaceMessage(text || customText);
+        const mentionText  = ['@here', '@channel'].concat(users.map(u => `@${u.real_name || u.name}`));
         const hasReactions = Boolean(reactions.length);
         const isMention = (props) => {
             return Boolean(props.children.filter(child => mentionText.includes(child)).length)
@@ -206,18 +256,22 @@ export default function LogDetail(props) {
                 </div>
                 <div className={classes.logText}>
                     <ReactMarkdown 
+                        remarkPlugins={[[remarkGfm, {singleTilde: false}]]}
                         children={message} 
+                        
                         components={{
                             'strong' : ({node, ...props}) => {
                                 const isLinkText = isMention(props);
                                 const className = isLinkText ? classes.mentionLink : null;
                                 return <strong className={className} {...props} />
-                            },
+                            }/*,
                             'em' : ({node, ...props}) => {
                                 const isLinkText = isMention(props);
                                 return isLinkText ? <strong className={classes.mentionLink} {...props} /> : <strong {...props} />
                             }
+                            */
                         }}
+                        
                     />
                 </div>
                 <div className={classes.logToolBox}>
