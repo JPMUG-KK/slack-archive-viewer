@@ -2,8 +2,7 @@ import Encoding from 'encoding-japanese';
 import {Zlib} from '../node_modules/zlibjs/bin/unzip.min.js';
 import moment from 'moment';
 import Dexie from 'dexie';
-import emoji from 'emoji-dictionary';
-import * as unicodeEmoji from 'unicode-emoji';
+import emojiSlack from './json/emoji-slack.json';
 
 const db = new Dexie('slackViewerDB');
 db.version(1).stores({
@@ -174,32 +173,15 @@ const getBase64Data = async (id) => {
     const data = await db.store.get(id);
     return data;
 }
-const unicodeEmojiJSON = (unicodeEmoji.getEmojis()).map(d => {
-    return {
-        ...d,
-        slack : d.description.replace(/\s/gi, '').toLowerCase(),
-    }
-});
-
 const emojiSupport = (text) => {
-    return text.replace(/:(.*)?:/gi, (value, name) => {
-        const emojiUnicodeValue = emoji.getUnicode(value) || undefined;
-        return emojiUnicodeValue;
-        
-        //if(emojiUnicodeValue) return emojiUnicodeValue;
-        //const emoji_text = name.replace(/_|\*/gi, '').toLowerCase();
-        //const emojiOptions = unicodeEmojiJSON.find(d => d.slack === emoji_text) || undefined;
-        //const emojiJsonVer = emojiOptions?.emoji || undefined;
-        //console.log(emojiJsonVer, name, emoji_text, emojiOptions);
-        //return emojiJsonVer;
-        
-    });
-}
+    return (text || '').replace(/:([a-z0-9_+-]+)?:/gi, (value, text) => {
+        const slackEmoji = emojiSlack[text] || undefined;
 
-const unicodeEmojiSupport = (text) => {
-    const emoji_text = text.replace(/_/gi, '').replace(/:/gi, '');
-    console.log(unicodeEmojiJSON);
-    console.log(unicodeEmojiJSON.filter(d => d.slack === emoji_text), emoji_text);
+        if(!slackEmoji){
+            console.log(`${value}\n${text}`);
+        }
+        return slackEmoji;
+    });
 }
 export {
     unzipSlackExportFiles,
@@ -208,5 +190,4 @@ export {
     getBase64Data,
     getCurrentWorkSpacesData,
     emojiSupport,
-    unicodeEmojiSupport,
 }

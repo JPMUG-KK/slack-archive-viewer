@@ -13,10 +13,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
     emojiSupport,
-    unicodeEmojiSupport,
 } from './utility.js';
 import moment from 'moment';
-
 const useStyles = makeStyles(theme => ({
     root : {
         height : '100vh',
@@ -196,7 +194,7 @@ export default function LogDetail(props) {
                 return `**${channelName}**`;
             } ,
         }];
-        
+        text = emojiSupport(text);
         msgRegExp.forEach(params => {
             const {
                 key,
@@ -214,7 +212,7 @@ export default function LogDetail(props) {
             }
             text = (text || '').replace(userRegExp, `**@${name}**`);
         });
-        text = emojiSupport(text);
+        
         return text;
     }
     const Log = (props) => {
