@@ -246,7 +246,7 @@ export default function LogDetail(props) {
         };
         const userName = real_name || name;
         let message = replaceMessage(text || customText);
-        console.log(message)
+        //console.log(message)
         const mentionText  = ['@here', '@channel'].concat(users.map(u => `@${u.real_name || u.name}`));
         const hasReactions = Boolean(reactions.length);
         const isMention = (props) => {

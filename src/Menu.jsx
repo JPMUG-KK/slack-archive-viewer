@@ -11,7 +11,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import IconButton from '@material-ui/core/IconButton';
 import SearchIcon from '@material-ui/icons/Search';
 import CircularProgress from '@material-ui/core/CircularProgress';
-
+import InputBase from '@material-ui/core/InputBase';
 import {
     importDb,
 } from './utility.js';
@@ -35,6 +35,9 @@ const useStyles = makeStyles(theme => ({
         overflowY : 'auto',
         '&::-webkit-scrollbar-thumb' : {
             background: 'rgba(255,255,255,0.25)',
+        },
+        '& .fa-hashtag' : {
+            marginRight : 8,
         }
     },
     listTitle : {
@@ -90,6 +93,36 @@ const useStyles = makeStyles(theme => ({
     },
     CircularProgress : {
         color : 'rgba(255, 255, 255, 0.75)',
+    },
+    channelSearchBox : {
+        display : 'flex',
+        justifyContent : 'stretch',
+        alignItems : 'stretch',
+        padding : '0 12px 8px 12px',
+        position : 'sticky',
+        top : 0,
+        zIndex : 1,
+        '& .fa-search' : {
+            position : 'absolute',
+            zIndex : 1,
+            top : 9,
+            left : 20,
+            color : 'rgba(255, 255, 255, 0.5)',
+        },
+        '&:focus-within .fa-search' : {
+            color : 'rgba(255, 255, 255, 0.75)',
+        }
+    },
+    searchInput : {
+        backgroundColor : 'rgb(98 57 99)',
+        flex : 1,
+        borderRadius : 4,
+        padding : '2px 8px 2px 32px',
+        color : 'rgba(255, 255, 255, 0.9)',
+        transition : 'background .2s linear',
+        '&:focus-within' : {
+            backgroundColor : 'rgb(87 50 88)',
+        }
     }
 }));
 
@@ -109,9 +142,12 @@ export default function Menu(props) {
         appType,
         channelId=null,
     } = useParams();
+    const [searchChannelText, setSearchChannelText] = React.useState('');
     const [disabledImportButton, setDisabledImportButton] = React.useState(false);
     const classes = useStyles({menuWidth});
     const history = useHistory();
+
+    const searchInputRef = React.useRef(null);
 
     const changeChannel = (app, id) => () => {
         let url = `/${workSpace}/${app}/${id}`;
@@ -120,13 +156,16 @@ export default function Menu(props) {
         }
         history.push(url);
     }
-
-    const channels = slackData.setting.channels.map(c => {
-        return {
-            ...c,
-            selected : c.id === channelId,   
-        }
-    });
+    const searchRegExp = searchChannelText ? new RegExp(searchChannelText) : true;
+    const channels = slackData.setting.channels
+        .filter(c => !searchChannelText || c.name.search(searchRegExp) > -1)
+        .sort((a, b) => a.name < b.name ? -1 : 1)
+        .map(c => {
+            return {
+                ...c,
+                selected : c.id === channelId,   
+            }
+        });
     const workSpaceOptions = Object.keys(currentWorkSpaces).map(name => {
         return {
             label    : name,
@@ -148,6 +187,13 @@ export default function Menu(props) {
     const callImportDb = () => {
         setDisabledImportButton(true);
         importDb(slackData, callbackInportDb);
+    }
+    const searchChannel = (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        const value = searchInputRef.current.value;
+        setSearchChannelText(searchInputRef.current.value);
+        return false;
     }
     return (
         <div id={menuId} className={classes.root}>
@@ -187,6 +233,20 @@ export default function Menu(props) {
                 </Tooltip>
             </Typography>
             <List className={classes.list} dense={true} component="nav" aria-label="main mailbox folders">
+                <form onSubmit={searchChannel} className={classes.channelSearchBox}>
+                    <i class="fas fa-search"></i>
+                    <InputBase
+                        className={classes.searchInput}
+                        placeholder="Search Channels"
+                        inputProps={{ 
+                            'aria-label': 'Search Channels',
+                            ref : searchInputRef,
+                            
+                        }}
+                        type='search'
+                        onInput={searchChannel}
+                    />
+                </form>
                 {
                     channels.map(channel => {
                         const {
@@ -199,7 +259,10 @@ export default function Menu(props) {
                                 selected : classes.ListItemSelected,
                                 root : classes.ListItemRoot,
                             }} selected={selected} onClick={changeChannel('log', id)} button>
-                                <ListItemText className={classes.ListItemText} primary={`# ${name}`} />
+                                <ListItemText className={classes.ListItemText} primary={(<span>
+                                    <i class="fas fa-hashtag"></i>
+                                    {name}
+                                </span>)} />
                             </ListItem>
                         )
                     })
