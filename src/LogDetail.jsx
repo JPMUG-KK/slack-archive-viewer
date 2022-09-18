@@ -147,11 +147,20 @@ export default function LogDetail(props) {
                 return `**${text}**`;
             },
         },{
-            // itaric
-            key   : '\\_(.+)?\\_',
-            replacer : (value, text) => {
-                return `*${text}*`;
-            },
+            key   : '<!here>',
+            replacer : (value) => `**@${value.replace(mentionRegExp, '')}**`,
+        }, {
+            key : '<!channel>',
+            replacer : (value) => `**@${value.replace(mentionRegExp, '')}**`,
+        }, {
+            key : '<!subteam.+?\\|@.+?>',
+            replacer : (value) => {
+                const channelName = (value.split('|')?.[1] || 'undefined').replace(/>$/, '');
+                if(!mentionText.includes(channelName)){
+                    mentionText.push(channelName);
+                }
+                return `**${channelName}**`;
+            } ,
         },{
             // strikethrough
             key   : '\\~(.+)?\\~',
@@ -178,23 +187,17 @@ export default function LogDetail(props) {
             // blockquote
             key   : '\\&gt;\s',
             replacer : '> ',
-        },{
-            key   : '<!here>',
-            replacer : (value) => `**@${value.replace(mentionRegExp, '')}**`,
-        }, {
-            key : '<!channel>',
-            replacer : (value) => `**@${value.replace(mentionRegExp, '')}**`,
-        }, {
-            key : '<!subteam.+?\\|@.+?>',
-            replacer : (value) => {
-                const channelName = (value.split('|')?.[1] || 'undefined').replace(/>$/, '');
-                if(!mentionText.includes(channelName)){
-                    mentionText.push(channelName);
-                }
-                return `**${channelName}**`;
-            } ,
         }];
         text = emojiSupport(text);
+        users.forEach(u => {
+            const userRegExp = new RegExp(`<@${u.id}>`, 'gi');
+            const name = u.real_name || u.name;
+            if(!mentionText.includes(`@${name}`)){
+                mentionText.push(`@${name}`);
+            }
+            text = (text || '').replace(userRegExp, `**@${name}**`);
+        });
+
         msgRegExp.forEach(params => {
             const {
                 key,
@@ -204,14 +207,7 @@ export default function LogDetail(props) {
             text = (text || '').replace(regExp, replacer);
         });
         
-        users.forEach(u => {
-            const userRegExp = new RegExp(`<@${u.id}>`, 'gi');
-            const name = u.real_name || u.name;
-            if(!mentionText.includes(`@${name}`)){
-                mentionText.push(`@${name}`);
-            }
-            text = (text || '').replace(userRegExp, `**@${name}**`);
-        });
+
         
         return text;
     }
@@ -241,6 +237,7 @@ export default function LogDetail(props) {
         };
         const userName = real_name || name;
         let message = replaceMessage(text || customText);
+        console.log({message})
         const mentionText  = ['@here', '@channel'].concat(users.map(u => `@${u.real_name || u.name}`));
         const hasReactions = Boolean(reactions.length);
         const isMention = (props) => {
