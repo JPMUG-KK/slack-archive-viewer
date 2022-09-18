@@ -86,6 +86,11 @@ const useStyles = makeStyles(theme => ({
             whiteSpace : 'normal',
             margin : 0,
             padding : '0 0 0 16px',
+        },
+        '& blockquote' : {
+            borderLeft: 'solid 3px #ddd',
+            margin: 0,
+            padding: '0 0 0 18px',
         }
     },
     attachments : {
@@ -184,9 +189,13 @@ export default function LogDetail(props) {
             key   : '`{3}',
             replacer : '\n```',
         },{
-            // blockquote
-            key   : '\\&gt;\s',
-            replacer : '> ',
+            // Remove ampersand escaping of entity
+            key   : '\\&gt;',
+            replacer : '>',
+        },{
+            // Remove ampersand escaping of entity
+            key : '\\&lt;',
+            replacer : '<', 
         }];
         text = emojiSupport(text);
         users.forEach(u => {
@@ -237,7 +246,7 @@ export default function LogDetail(props) {
         };
         const userName = real_name || name;
         let message = replaceMessage(text || customText);
-        console.log({message})
+        console.log(message)
         const mentionText  = ['@here', '@channel'].concat(users.map(u => `@${u.real_name || u.name}`));
         const hasReactions = Boolean(reactions.length);
         const isMention = (props) => {
