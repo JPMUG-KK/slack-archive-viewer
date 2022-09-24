@@ -15,6 +15,7 @@ import {
     emojiSupport,
 } from './utility.js';
 import moment from 'moment';
+import { faCommentsDollar } from '@fortawesome/free-solid-svg-icons';
 const useStyles = makeStyles(theme => ({
     root : {
         height : '100vh',
@@ -91,6 +92,9 @@ const useStyles = makeStyles(theme => ({
             borderLeft: 'solid 3px #ddd',
             margin: 0,
             padding: '0 0 0 18px',
+            '& p' : {
+                margin : '-18px 0',
+            }
         }
     },
     attachments : {
@@ -220,6 +224,155 @@ export default function LogDetail(props) {
         
         return text;
     }
+    const styleTypes = {
+        bold  : (text) => {
+            return `**${text}**`;
+        },
+        italic : (text) => {
+            return `_${text}_`;
+        },
+        strike : (text) => {
+            return `~~${text}~~`;
+        },
+        code : (text) => {
+            return `\`${text}\``;
+        },
+        rich_text_quote: (text) => {
+            const lines = text.split('\n');
+            return `${lines.map(line => `> ${line}`).join('\n')}`;
+        },
+        rich_text_preformatted : (text) => {
+            return `\`\`\`
+${text}
+\`\`\`\n`;
+        },
+        link : (text, url) => {
+            return `[${text}](${url})`
+        },
+        user : (id) => {
+            const user  = users.find(u => u.id === id) || {};
+            const {
+                real_name=null,
+                name='unknown',
+            } = user;
+            return `**@${real_name || name}**`;
+        },
+        broadcast : (text) => {
+            return `**@${text}**`;
+        },
+        emoji : (text) => {
+            return emojiSupport(`:${text}:`);
+        },
+        unlink : (text) => {
+            return text;
+        },
+        mrkdwn : (text) => {
+            // Exclude time from being judged as a emoji
+            if(text.match(/[0-2][0-9]:[0-5][0-9]:[0-5][0-9]/)){
+                return text;
+            }
+            const mrkdwnText = replaceMessage(text);
+            return mrkdwnText;
+        },
+        rich_text_list : {
+            bullet : (text) => {
+                return `* ${text}`;
+            },
+            ordered : (text) => {
+                return `1. ${text}`;
+            }
+        }
+    }
+    const parseElements = (elements, richTextListParams=null) => {
+        return elements.flatMap((element, index) => {
+            const {
+                text,
+                name=null,
+                user_id=null,
+                range=null,
+                type=null,
+                style=null,
+                url=null,
+                unicode=null,
+                listType=null,
+                listStyle=null,
+            } = element;
+            let {
+                elements : childElemens=null,
+            } = element;
+            const isFirst = index === 0;
+            const endNewLine = index === elements.length - 1 ? '\n\n' : '';
+            if(childElemens){
+                if(type === 'rich_text_list'){
+                    childElemens = childElemens.map(child => {
+                        return {
+                            ...child,
+                            elements : child.elements.map(childElement => {
+                                return {
+                                    ...childElement,
+                                    listType  : type,
+                                    listStyle : style,
+                                }
+                            })
+                        }
+                    });
+                }
+                if(['rich_text_quote', 'rich_text_preformatted'].includes(type)){
+                    childElemens = childElemens.map(child => {
+                        return {
+                            ...child,
+                            type : type,
+                        }
+                    });
+                }
+                return parseElements(childElemens, richTextListParams);
+            }
+            let styleText = range || name || user_id || text || url;
+            //console.log(index, style, styleText);
+            if(style){
+                Object.keys(style).forEach(type => {
+                    if(styleTypes[type]){
+                        styleText = styleTypes[type](styleText);
+                    }else{
+                        console.log(type, element)
+                    }
+                })
+            }
+
+            if(styleTypes[type]){
+                styleText = styleTypes[type](styleText, url);
+            }
+
+            if(isFirst && listType && listStyle){
+                styleText = styleTypes[listType][listStyle](styleText);
+            }
+            return `${styleText}${endNewLine}`;
+        })
+    }
+    const parseBlocks = (blocks) => {
+        return blocks.flatMap(block => {
+            let {
+                elements=null,
+            } = block;
+            const {
+                text=null,
+                fields=null,
+            } = block;
+            if(!elements){
+                if(text){
+                    elements = [text];
+                }
+                if(fields){
+                    elements = [...fields];
+                }
+            }
+            if(!elements){
+                console.error(`Undefined parameter in Viewer 🙇🏻‍♂️`, blocks);
+                return '';
+            }
+            return parseElements(elements);
+        })
+    }
     const Log = (props) => {
         const {
             log,
@@ -233,6 +386,7 @@ export default function LogDetail(props) {
             reply_count=0,
             reply_users=[],
             reactions=[],
+            blocks=[],
             //client_msg_id=null,
         } = log;
         const client_msg_id = log?.client_msg_id || `${log.user}:${log.ts}`;
@@ -245,13 +399,14 @@ export default function LogDetail(props) {
             name : 'Slackbot',
         };
         const userName = real_name || name;
-        let message = replaceMessage(text || customText);
+        //let message = replaceMessage(text || customText);
         //console.log(message)
         const mentionText  = ['@here', '@channel'].concat(users.map(u => `@${u.real_name || u.name}`));
         const hasReactions = Boolean(reactions.length);
         const isMention = (props) => {
             return Boolean(props.children.filter(child => mentionText.includes(child)).length)
         }
+        const message = (blocks.length) ? parseBlocks(blocks).join(' ') : replaceMessage(text || customText);
         return (
             <div className={classes.logBox}>
                 <div className={classes.logHead}>

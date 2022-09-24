@@ -176,10 +176,11 @@ const getBase64Data = async (id) => {
 const emojiSupport = (text) => {
     return (text || '').replace(/:([a-z0-9_+-]+)?:/gi, (value, text) => {
         const slackEmoji = emojiSlack[text] || undefined;
-
+        /*
         if(!slackEmoji){
             console.log(`${value}\n${text}`);
         }
+        */
         return slackEmoji;
     });
 }
